@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-circuit-dark: #1a1a2e;
+  --color-circuit-blue: #16213e;
+  --color-circuit-green: #0f3460;
+  --color-wire: #4ade80;
+  --color-wire-glow: #22d3ee;
+  --color-spark: #facc15;
+  --color-bulb-off: #6b7280;
+  --color-bulb-on: #fbbf24;
+  --color-correct: #22c55e;
+  --color-wrong: #ef4444;
+  --color-fun-purple: #a855f7;
+  --color-fun-pink: #ec4899;
+  --color-fun-orange: #f97316;
+  --color-fun-cyan: #06b6d4;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 20px #fbbf24); }
+  50% { filter: drop-shadow(0 0 16px #fbbf24) drop-shadow(0 0 40px #f59e0b); }
+}
+
+@keyframes spark {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.3); }
+  100% { opacity: 0; transform: scale(0.5) translateY(-20px); }
+}
+
+@keyframes wire-flow {
+  0% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes zap {
+  0%, 100% { opacity: 0; }
+  10%, 30%, 50% { opacity: 1; }
+  20%, 40% { opacity: 0; }
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.1) rotate(-3deg); }
+  50% { transform: scale(1.05) rotate(3deg); }
+  75% { transform: scale(1.1) rotate(-2deg); }
+  100% { transform: scale(1); }
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-spark {
+  animation: spark 0.5s ease-out forwards;
+}
+
+.animate-wire-flow {
+  animation: wire-flow 0.5s linear infinite;
+}
+
+.animate-zap {
+  animation: zap 0.6s ease-out;
+}
+
+.animate-celebrate {
+  animation: celebrate 0.6s ease-in-out;
+}
+
+.animate-confetti {
+  animation: confetti-fall 3s ease-in forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
