@@ -124,6 +124,18 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
     }
   }, [timeLeft, game.answered, handleTimeUp]);
 
+  // Keyboard shortcuts: 1-4 to pick answer
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = parseInt(e.key);
+      if (key >= 1 && key <= 4 && !game.answered) {
+        handleAnswer(currentQuestion.options[key - 1]);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [game.answered, currentQuestion.options, handleAnswer]);
+
   // Auto-advance after correct answer
   useEffect(() => {
     if (game.isCorrect === true) {
@@ -239,6 +251,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
               min-h-[80px] flex items-center justify-center select-none
             `}
           >
+            <span className="text-white/50 text-sm font-bold mr-2">{idx + 1})</span>
             {option}
             {game.answered && option === currentQuestion.answer && (
               <span className="ml-2">✓</span>
