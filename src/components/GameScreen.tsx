@@ -33,12 +33,20 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
   const [wrongKey, setWrongKey] = useState(0);
   const [timeLeft, setTimeLeft] = useState(timerSeconds);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const answeredRef = useRef(false);
 
   const currentQuestion = game.questions[game.currentIndex];
   const progress = ((game.currentIndex) / game.totalQuestions) * 100;
 
   const handleAnswer = useCallback((answer: number) => {
-    if (game.answered) return;
+    if (answeredRef.current) return;
+    answeredRef.current = true;
+
+    // Kill the timer immediately
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
     const correct = answer === currentQuestion.answer;
 
@@ -53,10 +61,11 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
     if (!correct) {
       setWrongKey(k => k + 1);
     }
-  }, [game.answered, currentQuestion.answer]);
+  }, [currentQuestion.answer]);
 
   const handleTimeUp = useCallback(() => {
-    if (game.answered) return;
+    if (answeredRef.current) return;
+    answeredRef.current = true;
 
     setGame(prev => ({
       ...prev,
@@ -65,7 +74,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       isCorrect: false,
     }));
     setWrongKey(k => k + 1);
-  }, [game.answered]);
+  }, []);
 
   const handleNext = useCallback(() => {
     const nextIndex = game.currentIndex + 1;
@@ -75,6 +84,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       return;
     }
 
+    answeredRef.current = false;
     setGame(prev => ({
       ...prev,
       currentIndex: nextIndex,
@@ -217,16 +227,16 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
         {currentQuestion.options.map((option, idx) => (
           <button
             key={`${game.currentIndex}-${option}`}
-            onClick={() => handleAnswer(option)}
+            onPointerDown={() => handleAnswer(option)}
             disabled={game.answered}
             className={`
               ${getOptionStyle(option, idx)}
               text-white font-extrabold text-2xl md:text-3xl
               py-6 px-6 rounded-2xl
               border-2
-              transform transition-all duration-150
+              transform transition-all duration-150 touch-manipulation
               ${!game.answered ? 'hover:scale-105 active:scale-95 cursor-pointer' : 'cursor-default'}
-              min-h-[80px] flex items-center justify-center
+              min-h-[80px] flex items-center justify-center select-none
             `}
           >
             {option}
