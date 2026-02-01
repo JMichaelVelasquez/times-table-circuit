@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { GameState } from '../types';
 import { generateQuestions } from '../utils';
 import { CircuitSVG } from './CircuitSVG';
+
+const SECONDS_PER_QUESTION = 10;
 
 interface GameScreenProps {
   table: number;
@@ -30,6 +32,8 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
   }));
 
   const [wrongKey, setWrongKey] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(SECONDS_PER_QUESTION);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const currentQuestion = game.questions[game.currentIndex];
   const progress = ((game.currentIndex) / game.totalQuestions) * 100;
@@ -52,6 +56,18 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
     }
   }, [game.answered, currentQuestion.answer]);
 
+  const handleTimeUp = useCallback(() => {
+    if (game.answered) return;
+
+    setGame(prev => ({
+      ...prev,
+      answered: true,
+      selectedAnswer: null,
+      isCorrect: false,
+    }));
+    setWrongKey(k => k + 1);
+  }, [game.answered]);
+
   const handleNext = useCallback(() => {
     const nextIndex = game.currentIndex + 1;
 
@@ -67,7 +83,37 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
       selectedAnswer: null,
       isCorrect: null,
     }));
+    setTimeLeft(SECONDS_PER_QUESTION);
   }, [game.currentIndex, game.totalQuestions, game.score, onFinish]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (game.answered) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [game.answered, game.currentIndex]);
+
+  // Trigger time-up when timer hits 0
+  useEffect(() => {
+    if (timeLeft === 0 && !game.answered) {
+      handleTimeUp();
+    }
+  }, [timeLeft, game.answered, handleTimeUp]);
 
   // Auto-advance after correct answer
   useEffect(() => {
@@ -103,11 +149,41 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
         >
           ← Back
         </button>
-        <div className="text-cyan-200/80 font-bold text-lg">
-          {game.table}× Table
+
+        {/* Countdown Timer */}
+        <div className="relative flex items-center justify-center w-14 h-14">
+          <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+            <circle
+              cx="28" cy="28" r="24"
+              fill="none"
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="4"
+            />
+            <circle
+              cx="28" cy="28" r="24"
+              fill="none"
+              stroke={timeLeft <= 3 ? '#ef4444' : timeLeft <= 5 ? '#f59e0b' : '#22d3ee'}
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 24}
+              strokeDashoffset={2 * Math.PI * 24 * (1 - timeLeft / SECONDS_PER_QUESTION)}
+              className="transition-all duration-1000 linear"
+            />
+          </svg>
+          <span className={`absolute text-lg font-extrabold ${
+            timeLeft <= 3 ? 'text-red-400 animate-pulse' : timeLeft <= 5 ? 'text-amber-400' : 'text-cyan-200'
+          }`}>
+            {game.answered ? '—' : timeLeft}
+          </span>
         </div>
-        <div className="text-cyan-200/80 font-medium">
-          {game.currentIndex + 1}/{game.totalQuestions}
+
+        <div className="text-right">
+          <div className="text-cyan-200/80 font-bold text-lg">
+            {game.table}× Table
+          </div>
+          <div className="text-cyan-200/50 text-sm font-medium">
+            {game.currentIndex + 1}/{game.totalQuestions}
+          </div>
         </div>
       </div>
 
@@ -175,7 +251,9 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
         )}
         {game.isCorrect === false && (
           <div>
-            <p className="text-red-400 font-bold text-xl mb-3">💥 ZAP! That's not right!</p>
+            <p className="text-red-400 font-bold text-xl mb-3">
+              {game.selectedAnswer === null ? '⏰ Time\u2019s up!' : '💥 ZAP! That\u2019s not right!'}
+            </p>
             <p className="text-cyan-200/60 text-sm mb-3">
               {currentQuestion.a} × {currentQuestion.b} = <span className="text-yellow-400 font-bold">{currentQuestion.answer}</span>
             </p>
