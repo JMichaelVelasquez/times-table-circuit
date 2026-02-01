@@ -251,7 +251,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
               min-h-[80px] flex items-center justify-center select-none
             `}
           >
-            <span className="text-white/50 text-sm font-bold mr-2">{idx + 1})</span>
+            <span className="bg-black/30 text-white font-bold text-base rounded-full w-8 h-8 flex items-center justify-center mr-3 shrink-0">{idx + 1}</span>
             {option}
             {game.answered && option === currentQuestion.answer && (
               <span className="ml-2">✓</span>
