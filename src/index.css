@@ -93,7 +93,7 @@
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #991b1b 0%, #7e22ce 50%, #581c87 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #ea580c 14%, #eab308 28%, #16a34a 42%, #2563eb 57%, #ec4899 71%, #9333ea 100%);
   min-height: 100vh;
   overflow-x: hidden;
 }
