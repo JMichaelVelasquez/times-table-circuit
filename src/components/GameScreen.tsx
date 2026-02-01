@@ -248,10 +248,10 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
               border-2
               transform transition-all duration-150 touch-manipulation
               ${!game.answered ? 'hover:scale-105 active:scale-95 cursor-pointer' : 'cursor-default'}
-              min-h-[80px] flex items-center justify-center select-none
+              min-h-[80px] flex items-center justify-center select-none relative
             `}
           >
-            <span className="bg-black/30 text-white font-bold text-base rounded-full w-8 h-8 flex items-center justify-center mr-3 shrink-0">{idx + 1}</span>
+            <span className="absolute top-1 left-2 text-black font-bold text-sm">{idx + 1}</span>
             {option}
             {game.answered && option === currentQuestion.answer && (
               <span className="ml-2">✓</span>
