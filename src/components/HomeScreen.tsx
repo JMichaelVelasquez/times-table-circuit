@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 interface HomeScreenProps {
-  onStart: (table: number, questionCount: number) => void;
+  onStart: (table: number, questionCount: number, timerSeconds: number) => void;
 }
 
 const TABLE_COLOURS = [
@@ -21,6 +21,7 @@ const TABLE_COLOURS = [
 
 export function HomeScreen({ onStart }: HomeScreenProps) {
   const [questionCount, setQuestionCount] = useState(10);
+  const [timerSeconds, setTimerSeconds] = useState(8);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8">
@@ -75,6 +76,30 @@ export function HomeScreen({ onStart }: HomeScreenProps) {
         </div>
       </div>
 
+      {/* Timer selector */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 mb-8 w-full max-w-md border border-white/10">
+        <label className="block text-center text-cyan-200 font-semibold mb-3 text-lg">
+          Seconds per question: <span className="text-yellow-400 font-bold text-2xl">{timerSeconds}s</span>
+        </label>
+        <div className="flex justify-center gap-3">
+          {[5, 6, 7, 8].map((s) => (
+            <button
+              key={s}
+              onClick={() => setTimerSeconds(s)}
+              className={`
+                w-14 h-14 rounded-xl font-extrabold text-xl transition-all duration-150
+                ${timerSeconds === s
+                  ? 'bg-yellow-400 text-gray-900 shadow-lg shadow-yellow-400/40 scale-110'
+                  : 'bg-white/10 text-cyan-200 hover:bg-white/20 hover:scale-105'}
+                border-2 ${timerSeconds === s ? 'border-yellow-300' : 'border-white/10'}
+              `}
+            >
+              {s}s
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Choose a table */}
       <h2 className="text-2xl font-bold text-white mb-4">Pick a Times Table!</h2>
 
@@ -82,7 +107,7 @@ export function HomeScreen({ onStart }: HomeScreenProps) {
         {Array.from({ length: 12 }, (_, i) => i + 1).map((num) => (
           <button
             key={num}
-            onClick={() => onStart(num, questionCount)}
+            onClick={() => onStart(num, questionCount, timerSeconds)}
             className={`
               bg-gradient-to-br ${TABLE_COLOURS[num - 1]}
               text-white font-extrabold text-2xl md:text-3xl

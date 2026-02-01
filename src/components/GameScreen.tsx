@@ -3,11 +3,10 @@ import type { GameState } from '../types';
 import { generateQuestions } from '../utils';
 import { CircuitSVG } from './CircuitSVG';
 
-const SECONDS_PER_QUESTION = 10;
-
 interface GameScreenProps {
   table: number;
   totalQuestions: number;
+  timerSeconds: number;
   onFinish: (score: number, total: number) => void;
   onHome: () => void;
 }
@@ -19,7 +18,7 @@ const OPTION_COLOURS = [
   'from-pink-500 to-pink-700 hover:from-pink-400 hover:to-pink-600',
 ];
 
-export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScreenProps) {
+export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHome }: GameScreenProps) {
   const [game, setGame] = useState<GameState>(() => ({
     table,
     totalQuestions,
@@ -32,7 +31,7 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
   }));
 
   const [wrongKey, setWrongKey] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(SECONDS_PER_QUESTION);
+  const [timeLeft, setTimeLeft] = useState(timerSeconds);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const currentQuestion = game.questions[game.currentIndex];
@@ -83,7 +82,7 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
       selectedAnswer: null,
       isCorrect: null,
     }));
-    setTimeLeft(SECONDS_PER_QUESTION);
+    setTimeLeft(timerSeconds);
   }, [game.currentIndex, game.totalQuestions, game.score, onFinish]);
 
   // Countdown timer
@@ -166,7 +165,7 @@ export function GameScreen({ table, totalQuestions, onFinish, onHome }: GameScre
               strokeWidth="4"
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 24}
-              strokeDashoffset={2 * Math.PI * 24 * (1 - timeLeft / SECONDS_PER_QUESTION)}
+              strokeDashoffset={2 * Math.PI * 24 * (1 - timeLeft / timerSeconds)}
               className="transition-all duration-1000 linear"
             />
           </svg>
