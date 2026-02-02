@@ -1,4 +1,13 @@
-export type Screen = 'home' | 'game' | 'results';
+export type Screen = 'mode' | 'signin' | 'home' | 'game' | 'results';
+
+export type Mode = 'home' | 'school';
+
+export interface UserAccount {
+  username: string;
+  passwordHash: string;
+  mode: Mode;
+  createdAt: number;
+}
 
 export interface Question {
   a: number;
@@ -7,8 +16,14 @@ export interface Question {
   options: number[];
 }
 
+export interface GameConfig {
+  tables: number[];
+  timerSeconds: number;
+  questionCount: number;
+}
+
 export interface GameState {
-  table: number;
+  tables: number[];
   totalQuestions: number;
   currentIndex: number;
   questions: Question[];

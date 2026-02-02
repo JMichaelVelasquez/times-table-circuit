@@ -1,63 +1,86 @@
 import { useState, useCallback } from 'react';
-import type { Screen } from './types';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import type { Mode, GameConfig } from './types';
+import { getSession } from './store';
+import { ModeSelect } from './components/ModeSelect';
+import { SignIn } from './components/SignIn';
 import { HomeScreen } from './components/HomeScreen';
 import { GameScreen } from './components/GameScreen';
 import { ResultsScreen } from './components/ResultsScreen';
 
 function App() {
-  const [screen, setScreen] = useState<Screen>('home');
-  const [selectedTable, setSelectedTable] = useState(1);
-  const [questionCount, setQuestionCount] = useState(10);
-  const [timerSeconds, setTimerSeconds] = useState(8);
+  const [mode, setMode] = useState<Mode>('home');
+  const [gameConfig, setGameConfig] = useState<GameConfig>({
+    tables: [2, 5, 10],
+    timerSeconds: 8,
+    questionCount: 10,
+  });
   const [finalScore, setFinalScore] = useState(0);
   const [finalTotal, setFinalTotal] = useState(0);
+  const [gameKey, setGameKey] = useState(0);
 
-  const handleStart = useCallback((table: number, count: number, timer: number) => {
-    setSelectedTable(table);
-    setQuestionCount(count);
-    setTimerSeconds(timer);
-    setScreen('game');
+  const handleStart = useCallback((config: GameConfig) => {
+    setGameConfig(config);
+    setGameKey(k => k + 1);
   }, []);
 
   const handleFinish = useCallback((score: number, total: number) => {
     setFinalScore(score);
     setFinalTotal(total);
-    setScreen('results');
   }, []);
 
-  const handlePlayAgain = useCallback(() => {
-    setScreen('game');
-  }, []);
-
-  const handleHome = useCallback(() => {
-    setScreen('home');
-  }, []);
+  const isAuthenticated = () => getSession() !== null;
 
   return (
-    <div className="min-h-screen">
-      {screen === 'home' && (
-        <HomeScreen onStart={handleStart} />
-      )}
-      {screen === 'game' && (
-        <GameScreen
-          key={`game-${selectedTable}-${Date.now()}`}
-          table={selectedTable}
-          totalQuestions={questionCount}
-          timerSeconds={timerSeconds}
-          onFinish={handleFinish}
-          onHome={handleHome}
-        />
-      )}
-      {screen === 'results' && (
-        <ResultsScreen
-          score={finalScore}
-          total={finalTotal}
-          table={selectedTable}
-          onPlayAgain={handlePlayAgain}
-          onHome={handleHome}
-        />
-      )}
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen">
+        <Routes>
+          <Route path="/" element={<ModeSelect onSelectMode={setMode} />} />
+          <Route path="/signin" element={<SignIn mode={mode} />} />
+          <Route
+            path="/setup"
+            element={
+              isAuthenticated() ? (
+                <HomeScreen onStart={handleStart} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/play"
+            element={
+              isAuthenticated() ? (
+                <GameScreen
+                  key={`game-${gameKey}`}
+                  tables={gameConfig.tables}
+                  totalQuestions={gameConfig.questionCount}
+                  timerSeconds={gameConfig.timerSeconds}
+                  onFinish={handleFinish}
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/results"
+            element={
+              isAuthenticated() ? (
+                <ResultsScreen
+                  score={finalScore}
+                  total={finalTotal}
+                  tables={gameConfig.tables}
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

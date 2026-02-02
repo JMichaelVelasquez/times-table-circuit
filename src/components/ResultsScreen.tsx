@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getEncouragement } from '../utils';
+import { VersionTag } from './VersionTag';
 
 interface ResultsScreenProps {
   score: number;
   total: number;
-  table: number;
-  onPlayAgain: () => void;
-  onHome: () => void;
+  tables: number[];
 }
 
 interface Confetto {
@@ -17,21 +17,28 @@ interface Confetto {
   size: number;
 }
 
-export function ResultsScreen({ score, total, table, onPlayAgain, onHome }: ResultsScreenProps) {
+export function ResultsScreen({ score, total, tables }: ResultsScreenProps) {
+  const navigate = useNavigate();
   const [confetti, setConfetti] = useState<Confetto[]>([]);
   const { message, emoji, subMessage } = getEncouragement(score, total);
   const pct = Math.round((score / total) * 100);
 
+  const tableLabel = tables.length === 1
+    ? `${tables[0]}× Table`
+    : tables.length <= 3
+      ? `${tables.join(', ')}× Tables`
+      : `${tables.length} Tables Mixed`;
+
   useEffect(() => {
     if (pct >= 60) {
-      const pieces: Confetto[] = Array.from({ length: 30 }, (_, i) => ({
+      const pieces: Confetto[] = Array.from({ length: 40 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
         color: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#8b5cf6', '#ec4899'][
           Math.floor(Math.random() * 7)
         ],
         delay: Math.random() * 2,
-        size: 6 + Math.random() * 8,
+        size: 6 + Math.random() * 10,
       }));
       setConfetti(pieces);
     }
@@ -39,6 +46,8 @@ export function ResultsScreen({ score, total, table, onPlayAgain, onHome }: Resu
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden">
+      <VersionTag />
+
       {/* Confetti */}
       {confetti.map((c) => (
         <div
@@ -55,22 +64,22 @@ export function ResultsScreen({ score, total, table, onPlayAgain, onHome }: Resu
       ))}
 
       {/* Emoji */}
-      <div className="text-5xl md:text-7xl mb-4 animate-float">
+      <div className="relative z-10 text-5xl md:text-7xl mb-4 animate-float">
         {emoji}
       </div>
 
       {/* Title */}
-      <h1 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-green-400 to-cyan-400 text-center mb-2 animate-celebrate">
+      <h1 className="relative z-10 text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-green-400 to-cyan-400 text-center mb-2 animate-celebrate">
         {message}
       </h1>
 
-      <p className="text-cyan-200/70 text-center text-lg mb-8 max-w-sm">
+      <p className="relative z-10 text-cyan-200/70 text-center text-lg mb-8 max-w-sm">
         {subMessage}
       </p>
 
       {/* Score card */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10 mb-8 text-center w-full max-w-sm">
-        <div className="text-cyan-300/60 text-sm font-medium mb-2">{table}× Times Table</div>
+      <div className="relative z-10 bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10 mb-8 text-center w-full max-w-sm">
+        <div className="text-cyan-300/60 text-sm font-medium mb-2">{tableLabel}</div>
 
         <div className="text-6xl md:text-7xl font-extrabold text-white mb-2">
           {score}<span className="text-3xl text-cyan-300/50">/{total}</span>
@@ -112,7 +121,7 @@ export function ResultsScreen({ score, total, table, onPlayAgain, onHome }: Resu
       </div>
 
       {/* Bulb visualization */}
-      <svg viewBox="0 0 80 100" className="w-16 mb-6 mx-auto">
+      <svg viewBox="0 0 80 100" className="relative z-10 w-16 mb-6 mx-auto">
         <circle
           cx="40"
           cy="36"
@@ -143,20 +152,20 @@ export function ResultsScreen({ score, total, table, onPlayAgain, onHome }: Resu
       </svg>
 
       {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+      <div className="relative z-10 flex flex-col sm:flex-row gap-3 w-full max-w-sm">
         <button
-          onClick={onPlayAgain}
+          onClick={() => navigate('/play')}
           className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg py-4 px-6 rounded-2xl
             hover:from-green-400 hover:to-emerald-500 transform hover:scale-105 active:scale-95 transition-all shadow-lg border-2 border-white/20"
         >
           🔄 Play Again
         </button>
         <button
-          onClick={onHome}
+          onClick={() => navigate('/setup')}
           className="flex-1 bg-gradient-to-r from-purple-500 to-violet-600 text-white font-bold text-lg py-4 px-6 rounded-2xl
             hover:from-purple-400 hover:to-violet-500 transform hover:scale-105 active:scale-95 transition-all shadow-lg border-2 border-white/20"
         >
-          🏠 New Table
+          ⚙️ New Setup
         </button>
       </div>
     </div>

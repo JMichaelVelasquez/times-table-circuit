@@ -55,18 +55,20 @@ function generateWrongAnswers(correct: number, table: number): number[] {
   return Array.from(wrongs);
 }
 
-export function generateQuestions(table: number, count: number): Question[] {
-  // Generate all possible questions for this table (1-12)
+export function generateQuestions(tables: number[], count: number): Question[] {
+  // Generate all possible questions for ALL selected tables
   const allQuestions: Question[] = [];
-  for (let i = 1; i <= 12; i++) {
-    const answer = table * i;
-    const wrongs = generateWrongAnswers(answer, table);
-    allQuestions.push({
-      a: table,
-      b: i,
-      answer,
-      options: shuffle([answer, ...wrongs]),
-    });
+  for (const table of tables) {
+    for (let i = 1; i <= 12; i++) {
+      const answer = table * i;
+      const wrongs = generateWrongAnswers(answer, table);
+      allQuestions.push({
+        a: table,
+        b: i,
+        answer,
+        options: shuffle([answer, ...wrongs]),
+      });
+    }
   }
 
   // Shuffle and repeat to fill count

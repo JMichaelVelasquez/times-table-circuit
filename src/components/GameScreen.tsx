@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { GameState } from '../types';
 import { generateQuestions } from '../utils';
 import { CircuitSVG } from './CircuitSVG';
+import { VersionTag } from './VersionTag';
 
 interface GameScreenProps {
-  table: number;
+  tables: number[];
   totalQuestions: number;
   timerSeconds: number;
   onFinish: (score: number, total: number) => void;
-  onHome: () => void;
 }
 
 const OPTION_COLOURS = [
@@ -18,12 +19,13 @@ const OPTION_COLOURS = [
   'from-pink-500 to-pink-700 hover:from-pink-400 hover:to-pink-600',
 ];
 
-export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHome }: GameScreenProps) {
+export function GameScreen({ tables, totalQuestions, timerSeconds, onFinish }: GameScreenProps) {
+  const navigate = useNavigate();
   const [game, setGame] = useState<GameState>(() => ({
-    table,
+    tables,
     totalQuestions,
     currentIndex: 0,
-    questions: generateQuestions(table, totalQuestions),
+    questions: generateQuestions(tables, totalQuestions),
     score: 0,
     answered: false,
     selectedAnswer: null,
@@ -42,7 +44,6 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
     if (answeredRef.current) return;
     answeredRef.current = true;
 
-    // Kill the timer immediately
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -81,6 +82,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
 
     if (nextIndex >= game.totalQuestions) {
       onFinish(game.score, game.totalQuestions);
+      navigate('/results');
       return;
     }
 
@@ -93,7 +95,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       isCorrect: null,
     }));
     setTimeLeft(timerSeconds);
-  }, [game.currentIndex, game.totalQuestions, game.score, onFinish]);
+  }, [game.currentIndex, game.totalQuestions, game.score, onFinish, navigate, timerSeconds]);
 
   // Countdown timer
   useEffect(() => {
@@ -160,12 +162,20 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
     return `bg-gradient-to-br ${OPTION_COLOURS[idx]} opacity-50 border-white/10`;
   };
 
+  const tableLabel = tables.length === 1
+    ? `${tables[0]}× Table`
+    : tables.length <= 3
+      ? `${tables.join(', ')}× Tables`
+      : `${tables.length} Tables`;
+
   return (
-    <div className="min-h-screen flex flex-col px-4 py-4 md:py-6">
+    <div className="min-h-screen flex flex-col px-4 py-4 md:py-6 relative">
+      <VersionTag />
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="relative z-10 flex items-center justify-between mb-4">
         <button
-          onClick={onHome}
+          onClick={() => navigate('/setup')}
           className="text-cyan-300/70 hover:text-cyan-200 text-sm font-medium flex items-center gap-1 transition-colors"
         >
           ← Back
@@ -199,17 +209,17 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
         </div>
 
         <div className="text-right">
-          <div className="text-cyan-200/80 font-bold text-lg">
-            {game.table}× Table
+          <div className="text-cyan-200/80 font-bold text-sm md:text-base">
+            {tableLabel}
           </div>
-          <div className="text-cyan-200/50 text-sm font-medium">
+          <div className="text-cyan-200/50 text-xs font-medium">
             {game.currentIndex + 1}/{game.totalQuestions}
           </div>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-white/10 rounded-full h-3 mb-6 overflow-hidden">
+      <div className="relative z-10 w-full bg-white/10 rounded-full h-3 mb-6 overflow-hidden">
         <div
           className="h-full rounded-full bg-gradient-to-r from-green-400 to-cyan-400 transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
@@ -217,7 +227,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       </div>
 
       {/* Circuit visualization */}
-      <div className="mb-4">
+      <div className="relative z-10 mb-4">
         <CircuitSVG
           isConnected={game.isCorrect === true}
           isWrong={game.isCorrect === false}
@@ -226,7 +236,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       </div>
 
       {/* Question */}
-      <div className="text-center mb-6">
+      <div className="relative z-10 text-center mb-6">
         <div className="inline-block bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4 border border-white/10">
           <span className="text-3xl md:text-5xl font-extrabold text-white">
             {currentQuestion.a} × {currentQuestion.b} = <span className="text-yellow-400">?</span>
@@ -235,7 +245,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       </div>
 
       {/* Answer options */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 max-w-md mx-auto w-full mb-6">
+      <div className="relative z-10 grid grid-cols-2 gap-3 md:gap-4 max-w-md mx-auto w-full mb-6">
         {currentQuestion.options.map((option, idx) => (
           <button
             key={`${game.currentIndex}-${option}`}
@@ -251,7 +261,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
               min-h-[80px] flex items-center justify-center select-none relative
             `}
           >
-            <span className="absolute top-1 left-2 text-black font-bold text-sm">{idx + 1}</span>
+            <span className="absolute top-1 left-2 text-white/40 font-bold text-xs">{idx + 1}</span>
             {option}
             {game.answered && option === currentQuestion.answer && (
               <span className="ml-2">✓</span>
@@ -264,7 +274,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       </div>
 
       {/* Feedback & next button */}
-      <div className="text-center">
+      <div className="relative z-10 text-center">
         {game.isCorrect === true && (
           <div className="animate-celebrate">
             <p className="text-green-400 font-extrabold text-2xl mb-2">⚡ Circuit Complete! ⚡</p>
@@ -291,7 +301,7 @@ export function GameScreen({ table, totalQuestions, timerSeconds, onFinish, onHo
       </div>
 
       {/* Score ticker */}
-      <div className="mt-auto pt-4 text-center">
+      <div className="relative z-10 mt-auto pt-4 text-center">
         <span className="text-cyan-300/50 text-sm">
           Score: <span className="text-yellow-400 font-bold">{game.score}</span> / {game.currentIndex + (game.answered ? 1 : 0)}
         </span>
